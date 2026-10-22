@@ -150,10 +150,11 @@
     // start above the top-left corner of the screen, measured from where the emblem rests
     const sx = -box.left - box.width * .9, sy = -box.top - box.height * .9;
     const land = 1.9;
+    gsap.set(fly, {opacity:0});
     gsap.timeline({delay:.3})
-      .set(fly, {opacity:.6, scale:.28, rotation:-38})
+      .set(fly, {opacity:.6, scale:.28, rotation:-38, x:sx, y:sy})
       .to(fly, {duration:land, ease:'power2.inOut', scale:1, rotation:0,
-        motionPath:{path:[{x:sx, y:sy}, {x:sx * .55, y:sy * 1.1}, {x:sx * .18, y:sy * .35}, {x:0, y:0}], curviness:1.3}}, 0)
+        motionPath:{path:[{x:sx, y:sy}, {x:sx * .55, y:sy * 1.1}, {x:sx * .18, y:sy * .35}, {x:0, y:0}], curviness:1.3, fromCurrent:false}}, 0)
       .fromTo(flap, {scaleX:1, scaleY:1}, {scaleX:1.06, scaleY:.84, duration:.17, yoyo:true, repeat:9, ease:'sine.inOut'}, 0)
       .to(flap, {scaleX:1.1, scaleY:.88, duration:.12, ease:'power2.out'}, land)
       .to(flap, {scaleX:1, scaleY:1, duration:1, ease:'elastic.out(1,.32)'}, land + .12)
