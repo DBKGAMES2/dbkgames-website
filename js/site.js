@@ -134,8 +134,7 @@
     gsap.timeline({defaults:{ease:'expo.out'}})
       .from('.hero h1 .ln > span', {yPercent:110, duration:1.6, stagger:.12, delay:.15})
       .from('.h-in', {y:24, opacity:0, duration:1.1, stagger:.09}, '-=1.1')
-      .from('.hero-raven', {scale:.85, opacity:0, duration:2.4, ease:'power2.out'}, 0)
-      .from('.nav', {y:-30, opacity:0, duration:1}, .5);
+      .from('.hero-raven', {scale:.85, opacity:0, duration:2.4, ease:'power2.out'}, 0);
     gsap.to('.hero .wrap', {yPercent:-12, opacity:.15, ease:'none',
       scrollTrigger:{trigger:'.hero', start:'top top', end:'bottom top', scrub:true}});
     gsap.to('.hero-raven', {rotate:-8, yPercent:-20, ease:'none',
