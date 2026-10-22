@@ -195,13 +195,12 @@
 
       const box = fly.getBoundingClientRect();
       const startX = -box.right - 40;            // whole eagle, tail included, starts off the left edge
-      const land = 2.6;
-      gsap.timeline({delay:.3})
+      const curl = .55, land = curl + 1.1;   // the tail starts curling while the eagle is still arriving
+      gsap.timeline({delay:.2})
         .set(fly, {opacity:.6, x:startX, rotation:EMB_ROOT * 180 / Math.PI})   // tilted so the straight tail is level
-        .to(fly, {x:0, duration:1.7, ease:'power3.out'}, 0)
-        .fromTo(flap, {scaleY:1}, {scaleY:.93, duration:.18, yoyo:true, repeat:7, ease:'sine.inOut'}, 0)
-        .to(state, {k:1, duration:1.5, ease:'power2.inOut', onUpdate:draw}, 1.1)
-        .to(fly, {rotation:0, duration:1.5, ease:'power2.inOut'}, 1.1)
+        .to(fly, {x:0, duration:.95, ease:'power2.out'}, 0)
+        .to(state, {k:1, duration:1.1, ease:'power2.inOut', onUpdate:draw}, curl)
+        .to(fly, {rotation:0, duration:1.1, ease:'power2.inOut'}, curl)
         .to(flap, {scaleX:1.08, scaleY:.9, duration:.12, ease:'power2.out'}, land)
         .to(flap, {scaleX:1, scaleY:1, duration:1, ease:'elastic.out(1,.32)'}, land + .12)
         .to(svg, {filter:'drop-shadow(0 0 70px rgba(143,184,255,.95))', duration:.25, ease:'power2.out'}, land)
