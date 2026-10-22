@@ -160,7 +160,7 @@
       .to(flap, {scaleX:1, scaleY:1, duration:1, ease:'elastic.out(1,.32)'}, land + .12)
       .to(img, {filter:'drop-shadow(0 0 70px rgba(143,184,255,.95))', duration:.25, ease:'power2.out'}, land)
       .to(img, {filter:'drop-shadow(0 0 40px rgba(143,184,255,.4))', duration:1.4, ease:'power2.inOut'}, land + .3)
-      .fromTo(sheen, {opacity:1, backgroundPosition:'120% 0'}, {backgroundPosition:'-20% 0', duration:1.1, ease:'power2.inOut'}, land + .25)
+      .fromTo(sheen, {opacity:1, backgroundPosition:'120% 0'}, {backgroundPosition:'-20% 0', duration:1.1, ease:'power2.inOut', immediateRender:false}, land + .25)
       .to(sheen, {opacity:0, duration:.3}, land + 1.25)
       .to(fly, {opacity:.08, duration:1.4, ease:'power2.out'}, land + 1.1);
   }
