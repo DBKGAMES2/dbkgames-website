@@ -2,9 +2,12 @@
 
 Run from the repo root:  python tools/build_pages.py
 The header and footer are copied from index.html, so edit them there and re-run.
+Re-run after editing css/site.css or js/site.js too: every page links them with a
+content hash (?v=...) so visitors' browsers fetch the new version instead of a cached one.
 Everything this script writes is plain HTML and can also be edited by hand,
 but a re-run overwrites those files.
 """
+import hashlib
 import html
 import json
 import re
@@ -148,9 +151,10 @@ FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
 ICONS = ('<link rel="icon" type="image/svg+xml" href="/img/logo.svg">\n'
          '<link rel="icon" type="image/png" href="/img/favicon.png">\n'
          '<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">')
+VER = hashlib.md5((ROOT / "css/site.css").read_bytes() + (ROOT / "js/site.js").read_bytes()).hexdigest()[:8]
 SCRIPTS = ('<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>\n'
            '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>\n'
-           '<script src="/js/site.js"></script>')
+           f'<script src="/js/site.js?v={VER}"></script>')
 
 e = html.escape
 
@@ -182,7 +186,7 @@ def head(title, desc, url, image, extra=""):
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#06070a">
 {FONTS}
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/site.css?v={VER}">
 {extra}</head>
 <body>
 """
@@ -358,7 +362,17 @@ def not_found(header, footer):
 """
 
 
+def stamp_index():
+    """Point index.html at the current css/js versions."""
+    p = ROOT / "index.html"
+    src = p.read_text(encoding="utf8")
+    src = re.sub(r'/css/site\.css(\?v=\w+)?"', f'/css/site.css?v={VER}"', src)
+    src = re.sub(r'/js/site\.js(\?v=\w+)?"', f'/js/site.js?v={VER}"', src)
+    p.write_text(src, encoding="utf8")
+
+
 def main():
+    stamp_index()
     header, footer = chrome_from_index()
     for g in GAMES:
         out = ROOT / g["slug"] / "index.html"
