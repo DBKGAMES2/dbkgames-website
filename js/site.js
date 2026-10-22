@@ -140,29 +140,76 @@
       scrollTrigger:{trigger:'.hero', start:'top top', end:'bottom top', scrub:true}});
   }
 
-  // hero emblem: the eagle flies in on an arc from the upper left, beating its wings,
-  // lands with a squash, flares, a light sweeps across it, then it fades back to a watermark
+  // hero emblem: the eagle flies in level from the left with its tail streaming straight
+  // behind it, then the tail curls round into the circular emblem; it lands with a squash,
+  // flares, a light sweeps across it and it fades back to a watermark.
+  //
+  // The tail is the logo's own outline, unrolled. Every point is expressed as
+  // (arc length along a circle round the emblem's centre, offset from that circle);
+  // drawing those points on a circle of curvature k*R0 gives a straight tail at k=0
+  // and exactly the original logo at k=1. The numbers below belong to img/logo.svg:
+  // EMB_C/EMB_R = centre and radius of the ring, the head stays rigid up to EMB_ROOT,
+  // sub-paths 1 and 3 (eye details) are rigid, sub-path 2's points past 250deg are the
+  // beak (rigid), sub-path 4's points before 90deg are the tail's far tip.
   const fly = $('.emb-fly');
-  if (fly && window.MotionPathPlugin){
-    gsap.registerPlugin(MotionPathPlugin);
+  if (fly){
     const flap = $('.emb-flap', fly), img = $('img', flap), sheen = $('.emb-sheen', flap);
-    const box = fly.getBoundingClientRect();
-    // start above the top-left corner of the screen, measured from where the emblem rests
-    const sx = -box.left - box.width * .9, sy = -box.top - box.height * .9;
-    const land = 1.9;
+    const EMB_C = [627, 606], EMB_R = 330, EMB_ROOT = 20 * Math.PI / 180, TAU = Math.PI * 2;
     gsap.set(fly, {opacity:0});
-    gsap.timeline({delay:.3})
-      .set(fly, {opacity:.6, scale:.28, rotation:-38, x:sx, y:sy})
-      .to(fly, {duration:land, ease:'power2.inOut', scale:1, rotation:0,
-        motionPath:{path:[{x:sx, y:sy}, {x:sx * .55, y:sy * 1.1}, {x:sx * .18, y:sy * .35}, {x:0, y:0}], curviness:1.3, fromCurrent:false}}, 0)
-      .fromTo(flap, {scaleX:1, scaleY:1}, {scaleX:1.06, scaleY:.84, duration:.17, yoyo:true, repeat:9, ease:'sine.inOut'}, 0)
-      .to(flap, {scaleX:1.1, scaleY:.88, duration:.12, ease:'power2.out'}, land)
-      .to(flap, {scaleX:1, scaleY:1, duration:1, ease:'elastic.out(1,.32)'}, land + .12)
-      .to(img, {filter:'drop-shadow(0 0 70px rgba(143,184,255,.95))', duration:.25, ease:'power2.out'}, land)
-      .to(img, {filter:'drop-shadow(0 0 40px rgba(143,184,255,.4))', duration:1.4, ease:'power2.inOut'}, land + .3)
-      .fromTo(sheen, {opacity:1, backgroundPosition:'120% 0'}, {backgroundPosition:'-20% 0', duration:1.1, ease:'power2.inOut', immediateRender:false}, land + .25)
-      .to(sheen, {opacity:0, duration:.3}, land + 1.25)
-      .to(fly, {opacity:.08, duration:1.4, ease:'power2.out'}, land + 1.1);
+    fetch(img.currentSrc || img.src).then(r => r.text()).then(txt => {
+      const d = (txt.match(/\sd="([^"]+)"/) || [])[1];
+      const vb = (txt.match(/viewBox="([^"]+)"/) || [])[1];
+      if (!d || !vb) throw new Error('logo has no path');
+      const parts = d.split('Z').filter(s => s.trim()).map((sp, i) => {
+        const nums = sp.match(/-?[\d.]+/g).map(Number), pts = [];
+        for (let n = 0; n + 1 < nums.length; n += 2){
+          const x = nums[n], y = nums[n + 1];
+          let psi = -1;
+          if (i !== 1 && i !== 3){
+            psi = Math.atan2(-(x - EMB_C[0]), -(y - EMB_C[1]));   // counter-clockwise from straight up
+            if (psi < 0) psi += TAU;
+            if (i === 2 && psi > 250 * Math.PI / 180) psi -= TAU;
+            if (i === 4 && psi < Math.PI / 2) psi += TAU;
+          }
+          pts.push([x, y, psi, Math.hypot(x - EMB_C[0], y - EMB_C[1]) - EMB_R]);
+        }
+        return pts;
+      });
+      const sr = Math.sin(EMB_ROOT), cr = Math.cos(EMB_ROOT);
+      const A = [EMB_C[0] - EMB_R * sr, EMB_C[1] - EMB_R * cr];   // where the tail leaves the head
+      const build = k => parts.map(pts => 'M' + pts.map(([x, y, psi, n]) => {
+        if (psi <= EMB_ROOT) return x.toFixed(1) + ' ' + y.toFixed(1);
+        const s = (psi - EMB_ROOT) * EMB_R;
+        if (k < 1e-4) return (A[0] - cr * s - sr * n).toFixed(1) + ' ' + (A[1] + sr * s - cr * n).toFixed(1);
+        const rho = EMB_R / k, a = s / rho, ca = Math.cos(a), sa = Math.sin(a);
+        const vx = -sr, vy = -cr, rx = vx * ca + vy * sa, ry = -vx * sa + vy * ca;
+        return (A[0] + sr * rho + rx * (rho + n)).toFixed(1) + ' ' + (A[1] + cr * rho + ry * (rho + n)).toFixed(1);
+      }).join('L') + 'Z').join('');
+      const NS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(NS, 'svg'), path = document.createElementNS(NS, 'path');
+      svg.setAttribute('viewBox', vb); svg.setAttribute('aria-hidden', 'true');
+      path.setAttribute('fill', '#fff'); path.setAttribute('fill-rule', 'evenodd');
+      svg.append(path); flap.insertBefore(svg, img); img.remove();
+      const state = {k:0}, draw = () => path.setAttribute('d', build(state.k));
+      draw();
+
+      const box = fly.getBoundingClientRect();
+      const startX = -box.right - 40;            // whole eagle, tail included, starts off the left edge
+      const land = 2.6;
+      gsap.timeline({delay:.3})
+        .set(fly, {opacity:.6, x:startX, rotation:EMB_ROOT * 180 / Math.PI})   // tilted so the straight tail is level
+        .to(fly, {x:0, duration:1.7, ease:'power3.out'}, 0)
+        .fromTo(flap, {scaleY:1}, {scaleY:.93, duration:.18, yoyo:true, repeat:7, ease:'sine.inOut'}, 0)
+        .to(state, {k:1, duration:1.5, ease:'power2.inOut', onUpdate:draw}, 1.1)
+        .to(fly, {rotation:0, duration:1.5, ease:'power2.inOut'}, 1.1)
+        .to(flap, {scaleX:1.08, scaleY:.9, duration:.12, ease:'power2.out'}, land)
+        .to(flap, {scaleX:1, scaleY:1, duration:1, ease:'elastic.out(1,.32)'}, land + .12)
+        .to(svg, {filter:'drop-shadow(0 0 70px rgba(143,184,255,.95))', duration:.25, ease:'power2.out'}, land)
+        .to(svg, {filter:'drop-shadow(0 0 40px rgba(143,184,255,.4))', duration:1.4, ease:'power2.inOut'}, land + .3)
+        .fromTo(sheen, {opacity:1, backgroundPosition:'120% 0'}, {backgroundPosition:'-20% 0', duration:1.1, ease:'power2.inOut', immediateRender:false}, land + .25)
+        .to(sheen, {opacity:0, duration:.3}, land + 1.25)
+        .to(fly, {opacity:.08, duration:1.4, ease:'power2.out'}, land + 1.1);
+    }).catch(() => gsap.set(fly, {opacity:.08}));   // keep the still emblem if anything fails
   }
 
   // game page intro: key art settles, title rises, image drifts on scroll
