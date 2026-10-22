@@ -133,12 +133,35 @@
   if (has('.hero h1 .ln')){
     gsap.timeline({defaults:{ease:'expo.out'}})
       .from('.hero h1 .ln > span', {yPercent:110, duration:1.6, stagger:.12, delay:.15})
-      .from('.h-in', {y:24, opacity:0, duration:1.1, stagger:.09}, '-=1.1')
-      .from('.hero-raven', {scale:.85, opacity:0, duration:2.4, ease:'power2.out'}, 0);
+      .from('.h-in', {y:24, opacity:0, duration:1.1, stagger:.09}, '-=1.1');
     gsap.to('.hero .wrap', {yPercent:-12, opacity:.15, ease:'none',
       scrollTrigger:{trigger:'.hero', start:'top top', end:'bottom top', scrub:true}});
-    gsap.to('.hero-raven', {rotate:-8, yPercent:-20, ease:'none',
+    gsap.to('.hero-emblem', {rotate:-8, yPercent:-20, ease:'none',
       scrollTrigger:{trigger:'.hero', start:'top top', end:'bottom top', scrub:true}});
+  }
+
+  // hero emblem: the eagle flies in on an arc from the upper left, beating its wings,
+  // lands with a squash, flares, a light sweeps across it, then it fades back to a watermark
+  const fly = $('.emb-fly');
+  if (fly && window.MotionPathPlugin){
+    gsap.registerPlugin(MotionPathPlugin);
+    const flap = $('.emb-flap', fly), img = $('img', flap), sheen = $('.emb-sheen', flap);
+    const box = fly.getBoundingClientRect();
+    // start above the top-left corner of the screen, measured from where the emblem rests
+    const sx = -box.left - box.width * .9, sy = -box.top - box.height * .9;
+    const land = 1.9;
+    gsap.timeline({delay:.3})
+      .set(fly, {opacity:.6, scale:.28, rotation:-38})
+      .to(fly, {duration:land, ease:'power2.inOut', scale:1, rotation:0,
+        motionPath:{path:[{x:sx, y:sy}, {x:sx * .55, y:sy * 1.1}, {x:sx * .18, y:sy * .35}, {x:0, y:0}], curviness:1.3}}, 0)
+      .fromTo(flap, {scaleX:1, scaleY:1}, {scaleX:1.06, scaleY:.84, duration:.17, yoyo:true, repeat:9, ease:'sine.inOut'}, 0)
+      .to(flap, {scaleX:1.1, scaleY:.88, duration:.12, ease:'power2.out'}, land)
+      .to(flap, {scaleX:1, scaleY:1, duration:1, ease:'elastic.out(1,.32)'}, land + .12)
+      .to(img, {filter:'drop-shadow(0 0 70px rgba(143,184,255,.95))', duration:.25, ease:'power2.out'}, land)
+      .to(img, {filter:'drop-shadow(0 0 40px rgba(143,184,255,.4))', duration:1.4, ease:'power2.inOut'}, land + .3)
+      .fromTo(sheen, {opacity:1, backgroundPosition:'120% 0'}, {backgroundPosition:'-20% 0', duration:1.1, ease:'power2.inOut'}, land + .25)
+      .to(sheen, {opacity:0, duration:.3}, land + 1.25)
+      .to(fly, {opacity:.08, duration:1.4, ease:'power2.out'}, land + 1.1);
   }
 
   // game page intro: key art settles, title rises, image drifts on scroll
