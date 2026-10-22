@@ -17,6 +17,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{scroll-behavior:smooth;background:var(--void);overflow-x:clip}
 body{margin:0;background:var(--void);color:var(--star);font-family:var(--f-body);font-size:17px;line-height:1.6;
   -webkit-font-smoothing:antialiased;overflow-x:clip}
