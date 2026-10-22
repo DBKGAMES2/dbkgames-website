@@ -83,7 +83,7 @@ p{margin:0}
   background:radial-gradient(120% 70% at 50% 120%,rgba(143,184,255,.12),transparent 60%),
              linear-gradient(180deg,rgba(6,7,10,0) 55%,var(--void) 100%)}
 .hero .wrap{width:100%;max-width:1440px}
-.hero-raven{position:absolute;right:max(-80px,-6vw);top:50%;translate:0 -54%;width:min(46vw,620px);opacity:.07;z-index:-1;
+.hero-raven{position:absolute;right:max(-80px,-6vw);top:50%;margin-top:calc(min(46vw,620px) * -.54);width:min(46vw,620px);aspect-ratio:1;opacity:.07;z-index:-1;
   filter:drop-shadow(0 0 40px rgba(143,184,255,.4))}
 .hero h1{font-size:clamp(46px,10.6vw,168px);letter-spacing:.04em;line-height:.95;margin:22px 0 28px}
 .hero h1 .ln{display:block;overflow:hidden;padding-bottom:.06em}
