@@ -624,7 +624,7 @@ footer{border-top:1px solid var(--line);padding-block:56px 36px}
     const dist = () => strip.scrollWidth - innerWidth;
     const tw = gsap.to(strip, {x:() => -dist(), ease:'none',
       scrollTrigger:{trigger:sec, start:'top top', end:() => '+=' + dist(), pin:true, scrub:.6, invalidateOnRefresh:true}});
-    return () => { sec.classList.remove('js-pin'); tw.scrollTrigger.kill(); gsap.set(strip,{x:0}); };
+    return () => sec.classList.remove('js-pin'); // gsap.matchMedia reverts the tween and its pin itself
   });
 
   // process steps: progress line fills in sequence
